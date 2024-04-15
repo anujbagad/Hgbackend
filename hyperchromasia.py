@@ -4,7 +4,6 @@ import requests
 from PIL import Image
 from io import BytesIO
 import histomicstk as htk
-
 import base64
 
 def detect_hyperchromasia(image_bytes):
@@ -14,16 +13,6 @@ def detect_hyperchromasia(image_bytes):
 
         # Convert image to numpy array
         img = np.array(original_image)
-
-        # Load reference image for normalization
-        ref_image_file = './mod_ref.jpg'  # Update the reference image file path
-        im_reference = skimage.io.imread(ref_image_file)[:, :, :3]
-
-        # get mean and stddev of the reference image in lab space
-        mean_ref, std_ref = htk.preprocessing.color_conversion.lab_mean_std(im_reference)
-
-        # perform Reinhard color normalization
-        im_nmzd = htk.preprocessing.color_normalization.reinhard(img, mean_ref, std_ref)
 
         # create stain to color map
         stainColorMap = {
@@ -44,7 +33,7 @@ def detect_hyperchromasia(image_bytes):
                       stainColorMap[stain_3]]).T
 
         # perform standard color deconvolution
-        im_stains = htk.preprocessing.color_deconvolution.color_deconvolution(im_nmzd, W).Stains
+        im_stains = htk.preprocessing.color_deconvolution.color_deconvolution(img, W).Stains
 
         # Convert result image to base64 string
         result_image_base64 = image_to_base64(im_stains[:, :, :3])
@@ -63,11 +52,11 @@ def detect_hyperchromasia(image_bytes):
         overall_avg_intensity = (avg_intensity_top_section + avg_intensity_middle_section + avg_intensity_bottom_section) / 3
 
         # Determine the class based on intensity values
-        if avg_intensity_bottom_section > avg_intensity_top_section:
+        if avg_intensity_top_section > avg_intensity_bottom_section:
             classification = "Severe"
         elif avg_intensity_bottom_section < avg_intensity_middle_section:
             classification = "Moderate"
-        elif avg_intensity_bottom_section > avg_intensity_middle_section and avg_intensity_bottom_section > avg_intensity_top_section:
+        elif avg_intensity_bottom_section > avg_intensity_middle_section:
             classification = "Mild"
         else:
             classification = "Unknown"

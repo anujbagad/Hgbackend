@@ -40,14 +40,14 @@ def get_contour_position(main_image_height, top_left):
     else:
         return "Mild"
 
-def detect_mitotic_figures(image_bytes, template_folder_path):
+def detect_keratin_figures(image_bytes, template_folder_path):
     try:
         # Read the original image
         original_image = Image.open(BytesIO(image_bytes))
 
         # Convert image to numpy array
         img = np.array(original_image)
-        threshold = 0.62
+        threshold = 0.4
         best_matching_score = 0
         best_top_left = (0, 0)
         best_bottom_right = (0, 0)
@@ -78,15 +78,6 @@ def detect_mitotic_figures(image_bytes, template_folder_path):
 
                     match_found = True
 
-        if not match_found:
-            return {
-                "original_image": None,
-                "result_image": None,
-                "mitotic_figure_score": 0,
-                "mitotic_figure_grade": "Normal",
-                "mitotic_figure_found": "No presence of mitotic figure observed"
-            }
-        else:
             contour_img = img.copy()
             cv2.rectangle(contour_img, best_top_left, best_bottom_right, (0, 255, 0), 2)
 
@@ -103,9 +94,9 @@ def detect_mitotic_figures(image_bytes, template_folder_path):
             return {
                 "original_image": og_image_base64,
                 "result_image": result_image_base64 if best_matching_score > 0 else None,
-                "mitotic_figure_score": best_matching_score,
-                "mitotic_figure_grade": best_grade,
-                "mitotic_figure_found": match_found
+                "Keratin_Pearls_score": best_matching_score,
+                "Keratin_Pearls_grade": best_grade,
+                "Keratin_Pearls_found": match_found
             }
 
     except Exception as e:
